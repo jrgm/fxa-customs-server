@@ -6,7 +6,7 @@ var Memcached = require('memcached')
 var restify = require('restify')
 var config = require('../config').root()
 var log = require('../log')(config.log.level, 'customs-server')
-var packageJson = require('../package.json')
+var version = require('../version')
 
 var LIFETIME = config.memcache.recordLifetimeSeconds
 var BLOCK_INTERVAL_MS = config.limits.blockIntervalSeconds * 1000
@@ -258,8 +258,14 @@ api.post(
 api.get(
   '/',
   function (req, res, next) {
-    res.send({ version: packageJson.version })
-    next()
+    version().then(
+      function(result) {
+        res.send(result)
+      },
+      function(err) {
+        log.error({ op: 'getversion', err: err })
+      }
+    ).then(next)
   }
 )
 
